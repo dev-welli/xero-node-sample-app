@@ -14,7 +14,7 @@ var exbhbsEngine = exphbs.create({
         __dirname + '/views/partials/'
     ],
     helpers: {
-        ifCond: function(v1, operator, v2, options) {
+        ifCond: function (v1, operator, v2, options) {
 
             switch (operator) {
                 case '==':
@@ -41,7 +41,7 @@ var exbhbsEngine = exphbs.create({
                     return options.inverse(this);
             }
         },
-        debug: function(optionalValue) {
+        debug: function (optionalValue) {
             console.log("Current Context");
             console.log("====================");
             console.log(this);
@@ -68,7 +68,9 @@ app.use(session({
     secret: 'something crazy',
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false }
+    cookie: {
+        secure: false
+    }
 }));
 
 app.use(express.static(__dirname + '/assets'));
@@ -119,22 +121,25 @@ function handleErr(err, req, res, returnTo) {
     }
 }
 
-app.get('/error', function(req, res) {
+app.get('/error', function (req, res) {
     console.log(req.query.error);
-    res.render('index', { error: req.query.error });
+    res.render('index', {
+        error: req.query.error
+    });
 })
 
 // Home Page
-app.get('/', function(req, res) {
-    res.render('index', {
-        active: {
-            overview: true
-        }
-    });
+app.get('/', function (req, res) {
+    res.redirect('/invoices')
+    // res.render('index', {
+    //     active: {
+    //         overview: true
+    //     }
+    // });
 });
 
 // Redirected from xero with oauth results
-app.get('/access', async function(req, res) {
+app.get('/access', async function (req, res) {
     var xeroClient = getXeroClient();
 
     let savedRequestToken = req.session.oauthRequestToken;
@@ -147,112 +152,15 @@ app.get('/access', async function(req, res) {
     res.redirect(returnTo || '/');
 });
 
-app.get('/organisations', async function(req, res) {
-    authorizedOperation(req, res, '/organisations', async function(xeroClient) {
-        try {
-            let organisations = await xeroClient.organisations.get()
-            res.render('organisations', {
-                organisations: organisations.Organisations,
-                active: {
-                    organisations: true,
-                    nav: {
-                        accounting: true
-                    }
-                }
-            })
-        } catch (err) {
-            handleErr(err, req, res, 'organisations');
-        }
+//Will only work with Contacts & Invoices endpoints for now. Deleting the rest
 
-    })
-});
+//Contacts endpoint
 
-app.get('/brandingthemes', async function(req, res) {
-    authorizedOperation(req, res, '/brandingthemes', async function(xeroClient) {
-        try {
-            let brandingThemes = await xeroClient.brandingThemes.get();
-
-            res.render('brandingthemes', {
-                brandingthemes: brandingThemes.BrandingThemes,
-                active: {
-                    brandingthemes: true,
-                    nav: {
-                        accounting: true
-                    }
-                }
-            });
-
-        } catch (error) {
-            handleErr(error, req, res, 'brandingthemes');
-        }
-    })
-});
-
-app.get('/invoicereminders', async function(req, res) {
-    authorizedOperation(req, res, '/invoicereminders', function(xeroClient) {
-        xeroClient.invoiceReminders.get()
-            .then(function(result) {
-                res.render('invoicereminders', {
-                    invoicereminders: result.InvoiceReminders,
-                    active: {
-                        invoicereminders: true,
-                        nav: {
-                            accounting: true
-                        }
-                    }
-                });
-            })
-            .catch(function(err) {
-                handleErr(err, req, res, 'invoicereminders');
-            })
-    })
-});
-
-app.get('/taxrates', async function(req, res) {
-    authorizedOperation(req, res, '/taxrates', function(xeroClient) {
-        xeroClient.taxRates.get()
-            .then(function(result) {
-                res.render('taxrates', {
-                    taxrates: result.TaxRates,
-                    active: {
-                        taxrates: true,
-                        nav: {
-                            accounting: true
-                        }
-                    }
-                });
-            })
-            .catch(function(err) {
-                handleErr(err, req, res, 'taxrates');
-            })
-    })
-});
-
-app.get('/users', async function(req, res) {
-    authorizedOperation(req, res, '/users', function(xeroClient) {
-        xeroClient.users.get()
-            .then(function(result) {
-                res.render('users', {
-                    users: result.Users,
-                    active: {
-                        users: true,
-                        nav: {
-                            accounting: true
-                        }
-                    }
-                });
-            })
-            .catch(function(err) {
-                handleErr(err, req, res, 'users');
-            })
-    })
-});
-
-app.get('/contacts', async function(req, res) {
-    authorizedOperation(req, res, '/contacts', function(xeroClient) {
+app.get('/contacts', async function (req, res) {
+    authorizedOperation(req, res, '/contacts', function (xeroClient) {
         var contacts = [];
         xeroClient.contacts.get()
-            .then(function(result) {
+            .then(function (result) {
                 res.render('contacts', {
                     contacts: result.Contacts,
                     active: {
@@ -263,177 +171,50 @@ app.get('/contacts', async function(req, res) {
                     }
                 });
             })
-            .catch(function(err) {
+            .catch(function (err) {
                 handleErr(err, req, res, 'contacts');
             })
     })
+});;
+
+app.get('/createcontact', async function (req, res) {
+    return res.render('createcontact', {
+
+    });
 });
 
-app.get('/currencies', async function(req, res) {
-    authorizedOperation(req, res, '/currencies', function(xeroClient) {
-        xeroClient.currencies.get()
-            .then(function(result) {
-                res.render('currencies', {
-                    currencies: result.Currencies,
-                    active: {
-                        currencies: true,
-                        nav: {
-                            accounting: true
-                        }
-                    }
-                });
-            })
-            .catch(function(err) {
-                handleErr(err, req, res, 'currencies');
-            });
-    })
-});
+app.post('/createcontact', async function (req, res) {
+    console.log('create contact pre-try');
+    console.log(req.body.duplicate)
+    try {
+        authorizedOperation(req, res, '/createcontact', async function (xeroClient) {
+            console.log('create contact pre-try');
+            var contact = await xeroClient.contact.create(
 
-app.get('/banktransactions', async function(req, res) {
-    authorizedOperation(req, res, '/banktransactions', function(xeroClient) {
-        var bankTransactions = [];
-        xeroClient.bankTransactions.get()
-            .then(function(result) {
-                res.render('banktransactions', {
-                    bankTransactions: result.BankTransactions,
-                    active: {
-                        banktransactions: true,
-                        nav: {
-                            accounting: true
-                        }
-                    }
-                });
-            })
-            .catch(function(err) {
-                handleErr(err, req, res, 'banktransactions');
-            })
-    })
-});
+                {
+                    Name: req.body.Name 
+                }
 
-app.get('/journals', async function(req, res) {
-    authorizedOperation(req, res, '/journals', function(xeroClient) {
-        xeroClient.journals.get()
-            .then(function(result) {
-                res.render('journals', {
-                    journals: result.Journals,
-                    active: {
-                        journals: true,
-                        nav: {
-                            accounting: true
-                        }
-                    }
-                });
+            ).then((data) => {
+                console.log(contact);
+                res.redirect('contacts')
             })
-            .catch(function(err) {
-                handleErr(err, req, res, 'journals');
-            })
-    })
-});
+        })
 
-app.get('/banktransfers', async function(req, res) {
-    authorizedOperation(req, res, '/banktransfers', function(xeroClient) {
-        xeroClient.bankTransfers.get()
-            .then(function(result) {
-                res.render('banktransfers', {
-                    bankTransfers: result.BankTransfers,
-                    active: {
-                        banktransfers: true,
-                        nav: {
-                            accounting: true
-                        }
-                    }
-                });
-            })
-            .catch(function(err) {
-                handleErr(err, req, res, 'banktransfers');
-            })
-    })
-});
+    } catch (err) {
+        res.render('createcontact', {
+            outcome: 'Error',
+            err: err
+        })
+    }
+})
 
-app.get('/payments', async function(req, res) {
-    authorizedOperation(req, res, '/payments', function(xeroClient) {
-        xeroClient.payments.get()
-            .then(function(result) {
-                res.render('payments', {
-                    payments: result.Payments,
-                    active: {
-                        payments: true,
-                        nav: {
-                            accounting: true
-                        }
-                    }
-                });
-            })
-            .catch(function(err) {
-                handleErr(err, req, res, 'payments');
-            })
-    })
-});
+//Invoices endpoint
 
-app.get('/trackingcategories', async function(req, res) {
-    authorizedOperation(req, res, '/trackingcategories', function(xeroClient) {
-        xeroClient.trackingCategories.get()
-            .then(function* (result) {
-                res.render('trackingcategories', {
-                    trackingcategories: result.TrackingCategories,
-                    active: {
-                        trackingcategories: true,
-                        nav: {
-                            accounting: true
-                        }
-                    }
-                });
-            })
-            .catch(function(err) {
-                handleErr(err, req, res, 'trackingcategories');
-            })
-    })
-});
-
-app.get('/accounts', async function(req, res) {
-    authorizedOperation(req, res, '/accounts', function(xeroClient) {
-        xeroClient.accounts.get()
-            .then(function(result) {
-                res.render('accounts', {
-                    accounts: result.Accounts,
-                    active: {
-                        accounts: true,
-                        nav: {
-                            accounting: true
-                        }
-                    }
-                });
-            })
-            .catch(function(err) {
-                handleErr(err, req, res, 'accounts');
-            })
-    })
-});
-
-app.get('/creditnotes', async function(req, res) {
-    authorizedOperation(req, res, '/creditnotes', function(xeroClient) {
-        xeroClient.creditNotes.get()
-            .then(function(result) {
-                res.render('creditnotes', {
-                    creditnotes: result.CreditNotes,
-                    active: {
-                        creditnotes: true,
-                        nav: {
-                            accounting: true
-                        }
-                    }
-                });
-            })
-            .catch(function(err) {
-                handleErr(err, req, res, 'creditnotes');
-            })
-    })
-});
-
-app.get('/invoices', async function(req, res) {
-    authorizedOperation(req, res, '/invoices', function(xeroClient) {
+app.get('/invoices', async function (req, res) {
+    authorizedOperation(req, res, '/invoices', function (xeroClient) {
         xeroClient.invoices.get()
-            .then(function(result) {
+            .then(function (result) {
                 res.render('invoices', {
                     invoices: result.Invoices,
                     active: {
@@ -444,109 +225,58 @@ app.get('/invoices', async function(req, res) {
                     }
                 });
             })
-            .catch(function(err) {
+            .catch(function (err) {
                 handleErr(err, req, res, 'invoices');
             })
 
     })
 });
 
-app.get('/repeatinginvoices', async function(req, res) {
-    authorizedOperation(req, res, '/repeatinginvoices', function(xeroClient) {
-        xeroClient.repeatingInvoices.get()
-            .then(function(result) {
-                res.render('repeatinginvoices', {
-                    repeatinginvoices: result.RepeatingInvoices,
-                    active: {
-                        repeatinginvoices: true,
-                        nav: {
-                            accounting: true
-                        }
-                    }
-                });
-            })
-            .catch(function(err) {
-                handleErr(err, req, res, 'repeatinginvoices');
-            })
+app.get('/createinvoice', async function (req, res) {
+    return res.render('createinvoice', {
 
-    })
+    });
 });
 
-app.get('/items', async function(req, res) {
-    authorizedOperation(req, res, '/items', function(xeroClient) {
-        xeroClient.items.get()
-            .then(function(result) {
-                res.render('items', {
-                    items: result.Items,
-                    active: {
-                        items: true,
-                        nav: {
-                            accounting: true
-                        }
-                    }
-                });
-            })
-            .catch(function(err) {
-                handleErr(err, req, res, 'items');
-            })
+app.post('/createinvoice', async function (req, res) {
+    console.log('create invoice pre-try');
+    console.log(req.body.duplicate)
+    try {
+        authorizedOperation(req, res, '/createinvoice', async function (xeroClient) {
+            console.log("create invoice after try")
+            var invoice = await xeroClient.invoices.create(
 
-    })
-});
-
-app.get('/manualjournals', async function(req, res) {
-    authorizedOperation(req, res, '/manualjournals', function(xeroClient) {
-        xeroClient.manualJournals.get()
-            .then(function(result) {
-                res.render('manualjournals', {
-                    manualjournals: result.ManualJournals,
-                    active: {
-                        manualjournals: true,
-                        nav: {
-                            accounting: true
-                        }
-                    }
-                });
-            })
-            .catch(function(err) {
-                handleErr(err, req, res, 'manualjournals');
-            })
-    })
-});
-
-app.use('/createinvoice', async function(req, res) {
-    if (req.method == 'GET') {
-        return res.render('createinvoice');
-    } else if (req.method == 'POST') {
-        try {
-            authorizedOperation(req, res, '/createinvoice', async function(xeroClient) {
-                var invoice = await xeroClient.invoices.create({
+                {
                     Type: req.body.Type,
                     Contact: {
                         Name: req.body.Contact
                     },
-                    DueDate: '2014-10-01',
+                    Date: req.body.Date,
+                    DueDate: req.body.DueDate || '',
                     LineItems: [{
                         Description: req.body.Description,
                         Quantity: req.body.Quantity,
-                        UnitAmount: req.body.Amount,
-                        AccountCode: 400,
-                        ItemCode: 'ABC123'
+                        UnitAmount: req.body.Price,
+                        AccountCode: req.body.AccountCode || ''
                     }],
-                    Status: 'DRAFT'
-                });
+                    Status: req.body.Status
+                }
 
-                res.render('createinvoice', { outcome: 'Invoice created', id: invoice.InvoiceID })
-
+            ).then((data) => {
+                console.log(invoice);
+                res.redirect('invoices')
             })
-        }
-        catch (err) {
-            res.render('createinvoice', { outcome: 'Error', err: err })
+        })
 
-        }
+    } catch (err) {
+        res.render('createinvoice', {
+            outcome: 'Error',
+            err: err
+        })
     }
-});
+})
 
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
     if (req.session)
         delete req.session.returnto;
 })
