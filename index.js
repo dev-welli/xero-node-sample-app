@@ -215,6 +215,9 @@ app.get('/invoices', async function (req, res) {
     authorizedOperation(req, res, '/invoices', function (xeroClient) {
         xeroClient.invoices.get()
             .then(function (result) {
+                
+                //console.log(JSON.stringify(result, null, 2));
+                
                 res.render('invoices', {
                     invoices: result.Invoices,
                     active: {
@@ -227,6 +230,34 @@ app.get('/invoices', async function (req, res) {
             })
             .catch(function (err) {
                 handleErr(err, req, res, 'invoices');
+            })
+
+    })
+});
+
+app.get('/invoicesRAW', async function (req, res) {
+    authorizedOperation(req, res, '/invoicesRAW', function (xeroClient) {
+        xeroClient.invoices.get()
+            .then(function (result) {
+                
+                console.log(JSON.stringify(result, null, 2));
+
+                let invoices = result.Invoices
+                invoices = JSON.stringify(invoices, null, 4)
+                invoices = JSON.stringify(invoices, null, "\t")
+                
+                res.render('invoicesRAW', {
+                    invoices,
+                    active: {
+                        invoices: true,
+                        nav: {
+                            accounting: true
+                        }
+                    }
+                });
+            })
+            .catch(function (err) {
+                handleErr(err, req, res, 'invoicesRAW');
             })
 
     })
