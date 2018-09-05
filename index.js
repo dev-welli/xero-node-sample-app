@@ -5,6 +5,8 @@ const session = require('express-session');
 const XeroClient = require('xero-node').AccountingAPIClient;;
 const exphbs = require('express-handlebars');
 
+// var Handlebars = require('hbs')
+
 var app = express();
 
 var exbhbsEngine = exphbs.create({
@@ -54,6 +56,11 @@ var exbhbsEngine = exphbs.create({
         }
     }
 });
+
+// Handlebars.registerHelper("beautiful", function (beautify) {
+//     beautify = result.Invoices
+//     return JSON.stringify(beautify, null, 2)
+// })
 
 app.engine('handlebars', exbhbsEngine.engine);
 
@@ -192,7 +199,7 @@ app.post('/createcontact', async function (req, res) {
             var contact = await xeroClient.contact.create(
 
                 {
-                    Name: req.body.Name 
+                    Name: req.body.Name
                 }
 
             ).then((data) => {
@@ -207,6 +214,7 @@ app.post('/createcontact', async function (req, res) {
             err: err
         })
     }
+
 })
 
 //Invoices endpoint
@@ -242,15 +250,15 @@ app.get('/invoicesRAW', async function (req, res) {
                 
                 console.log(JSON.stringify(result, null, 2));
 
-                let invoices = result.Invoices
-                invoices = JSON.stringify(invoices, null, 4)
-                invoices = JSON.stringify(invoices, null, "\t")
-                
+                 let invoices = result.Invoices
+                //  invoices = JSON.stringify(invoices, null, 4)
+                // invoices = JSON.stringify(invoices, null, "\t")
+                let rawInvoices = invoices.map(invoice => JSON.stringify(invoice, null, 4))
                 res.render('invoicesRAW', {
-                    invoices,
+                    invoices: rawInvoices,
                     active: {
-                        invoices: true,
-                        nav: {
+                        invoices: true,                
+                        nav: {                
                             accounting: true
                         }
                     }
